@@ -15,12 +15,15 @@ namespace ClinicManagement.Application.Implementations.MedicalExaminationService
         private readonly IMedicalExaminationServiceRepository _repo;
         private readonly IMedicalServiceRepository _medicalServiceRepo;
         private readonly ICurrentUserService _currentUser;
+        private readonly IMedicalExaminationRepository _examRepo;
 
         public CreateMedicalExaminationServiceHandler(
             IMedicalExaminationServiceRepository repo,
             IMedicalServiceRepository medicalServiceRepo,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            IMedicalExaminationRepository examRepo)
         {
+            _examRepo = examRepo;
             _repo = repo;
             _medicalServiceRepo = medicalServiceRepo;
             _currentUser = currentUser;
@@ -33,6 +36,14 @@ namespace ClinicManagement.Application.Implementations.MedicalExaminationService
             var callerEmail = _currentUser.GetEmail();
             if (callerEmail == null)
                 return result.BuildError("Unauthorized");
+
+            if (!await _examRepo.FindBy(x => x.MaPK == request.MaPK && x.IsDeleted == false).AnyAsync())
+                return result.BuildError("Phiếu khám không tồn tại.");
+
+            var requestedIds = request.MaDichVus.Distinct().ToList();
+            if (await _repo.FindBy(x => x.MaPK == request.MaPK && x.IsDeleted == false
+                    && requestedIds.Contains(x.MaDV)).AnyAsync())
+                return result.BuildError("Một hoặc nhiều dịch vụ đã được chỉ định cho phiếu khám này.");
 
             var services = await _medicalServiceRepo
                 .FindBy(x => request.MaDichVus.Contains(x.MaDV) && x.IsDeleted == false)

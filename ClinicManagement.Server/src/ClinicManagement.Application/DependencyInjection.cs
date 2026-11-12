@@ -28,6 +28,8 @@ namespace ClinicManagement.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            services.AddScoped<ClinicManagement.Application.Interfaces.Identity.IPatientScopeService, ClinicManagement.Application.Services.PatientScopeService>();
+
             services.AddScoped<ICreateDoctorHandler, CreateDoctorHandler>();
             services.AddScoped<IUpdateDoctorHandler, UpdateDoctorHandler>();
             services.AddScoped<IDeleteDoctorHandler, DeleteDoctorHandler>();

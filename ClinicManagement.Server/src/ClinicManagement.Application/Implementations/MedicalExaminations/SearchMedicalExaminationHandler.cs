@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using LinqKit;
 using MayNghien.Infrastructures.Models.Requests;
 using MayNghien.Infrastructures.Models.Responses;
@@ -15,8 +16,11 @@ namespace ClinicManagement.Application.Implementations.MedicalExaminations
     {
         private readonly IMedicalExaminationRepository _repo;
 
-        public SearchMedicalExaminationHandler(IMedicalExaminationRepository repo)
+        private readonly IPatientScopeService _patientScope;
+
+        public SearchMedicalExaminationHandler(IMedicalExaminationRepository repo, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _repo = repo;
         }
 
@@ -25,6 +29,8 @@ namespace ClinicManagement.Application.Implementations.MedicalExaminations
             var result = new AppResponse<SearchResponse<PhieuKhamResponse>>();
 
             var query = BuildFilterExpression(request.Filters!);
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            query = query.And(x => pid == null || x.Appointment!.MaBN == pid);
             var numOfRecords = await _repo.CountRecordsAsync(query);
             var entities = _repo.FindBy(query)
                 .Include(x => x.Doctor)

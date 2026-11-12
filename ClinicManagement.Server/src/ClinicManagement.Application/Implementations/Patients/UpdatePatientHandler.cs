@@ -12,10 +12,12 @@ namespace ClinicManagement.Application.Implementations.Patients
     {
         private readonly IPatientRepository _benhNhanRepository;
         private readonly ICurrentUserService _currentUser;
+        private readonly IPatientScopeService _patientScope;
 
         public UpdatePatientHandler(IPatientRepository benhNhanRepository,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _benhNhanRepository = benhNhanRepository;
             _currentUser = currentUser;
         }
@@ -27,6 +29,10 @@ namespace ClinicManagement.Application.Implementations.Patients
             var callerEmail = _currentUser.GetEmail();
             if (callerEmail == null)
                 return result.BuildError("Unauthorized");
+
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            if (pid != null && request.MaBN != pid)
+                return result.BuildError("Bạn không có quyền chỉnh sửa hồ sơ này.");
 
             var entity = await _benhNhanRepository.GetAsync(request.MaBN!.Value);
             if (entity == null || entity.IsDeleted)

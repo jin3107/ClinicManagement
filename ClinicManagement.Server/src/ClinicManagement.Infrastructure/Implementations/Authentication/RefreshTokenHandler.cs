@@ -50,7 +50,7 @@ namespace ClinicManagement.Infrastructure.Implementations.Authentication
             await _refreshTokenRepository.EditAsync(tokenEntity);
 
             var roles = await _userManager.GetRolesAsync(user);
-            var claims = LoginHandler.BuildClaims(user.Email!, user.PhoneNumber, roles);
+            var claims = LoginHandler.BuildClaims(user.Id, user.Email!, user.PhoneNumber, roles);
 
             var loginHandler = new LoginHandler(_userManager, _roleManager, _config, _refreshTokenRepository);
             var (newAccessToken, newRefreshToken) = await loginHandler.GenerateTokensAsync(user, claims);

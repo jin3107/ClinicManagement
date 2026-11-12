@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using MayNghien.Infrastructures.Models.Responses;
 using Microsoft.EntityFrameworkCore;
 using ClinicManagement.Application.Interfaces.MedicalExaminationServices;
@@ -11,8 +12,11 @@ namespace ClinicManagement.Application.Implementations.MedicalExaminationService
     {
         private readonly IMedicalExaminationServiceRepository _repo;
 
-        public GetMedicalExaminationServicesByExamHandler(IMedicalExaminationServiceRepository repo)
+        private readonly IPatientScopeService _patientScope;
+
+        public GetMedicalExaminationServicesByExamHandler(IMedicalExaminationServiceRepository repo, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _repo = repo;
         }
 
@@ -20,8 +24,10 @@ namespace ClinicManagement.Application.Implementations.MedicalExaminationService
         {
             var result = new AppResponse<List<PhieuKhamDichVuResponse>>();
 
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
             var entities = await _repo
                 .FindBy(x => x.MaPK == maPK && x.IsDeleted == false)
+                .Where(x => pid == null || x.MedicalExamination!.Appointment!.MaBN == pid)
                 .Include(x => x.MedicalService)
                 .ToListAsync();
 

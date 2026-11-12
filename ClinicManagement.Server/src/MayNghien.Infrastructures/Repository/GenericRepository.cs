@@ -264,7 +264,13 @@ namespace MayNghien.Infrastructures.Repository
         {
             var result = input.AsQueryable();
             var type = sortByInfo.FieldName;
+            if (string.IsNullOrWhiteSpace(type))
+                return result;
             type = char.ToUpper(type[0]) + type.Substring(1);
+            // Ignore unknown / non-public fields instead of throwing (client-supplied name).
+            var propertyInfo = typeof(TEntity).GetProperty(type);
+            if (propertyInfo == null || !propertyInfo.CanRead)
+                return result;
             var param = Expression.Parameter(typeof(TEntity), "m");
             var property = Expression.Property(param, type);
             var lambda = Expression.Lambda<Func<TEntity, object>>(Expression.Convert(property, typeof(object)), param);

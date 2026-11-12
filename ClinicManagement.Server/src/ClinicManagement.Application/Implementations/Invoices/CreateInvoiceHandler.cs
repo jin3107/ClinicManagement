@@ -1,4 +1,5 @@
 using MayNghien.Infrastructures.Models.Responses;
+using Microsoft.EntityFrameworkCore;
 using ClinicManagement.Application.Interfaces.Invoices;
 using ClinicManagement.Application.Interfaces.Identity;
 using ClinicManagement.Application.Interfaces.Repositories;
@@ -12,9 +13,12 @@ namespace ClinicManagement.Application.Implementations.Invoices
     {
         private readonly IInvoiceRepository _hoaDonRepo;
         private readonly ICurrentUserService _currentUser;
+        private readonly IMedicalExaminationRepository _examRepo;
 
-        public CreateInvoiceHandler(IInvoiceRepository hoaDonRepo, ICurrentUserService currentUser)
+        public CreateInvoiceHandler(IInvoiceRepository hoaDonRepo, ICurrentUserService currentUser,
+            IMedicalExaminationRepository examRepo)
         {
+            _examRepo = examRepo;
             _hoaDonRepo = hoaDonRepo;
             _currentUser = currentUser;
         }
@@ -27,6 +31,18 @@ namespace ClinicManagement.Application.Implementations.Invoices
             var callerId = _currentUser.GetUserId();
             if (callerEmail == null || callerId == null)
                 return result.BuildError("Unauthorized");
+
+            if (request.TongTien < 0)
+                return result.BuildError("Tổng tiền không hợp lệ.");
+
+            if (request.MaPK != null)
+            {
+                if (!await _examRepo.FindBy(x => x.MaPK == request.MaPK && x.IsDeleted == false).AnyAsync())
+                    return result.BuildError("Phiếu khám không tồn tại.");
+
+                if (await _hoaDonRepo.FindBy(x => x.MaPK == request.MaPK && x.IsDeleted == false).AnyAsync())
+                    return result.BuildError("Phiếu khám này đã có hóa đơn.");
+            }
 
             var entity = InvoiceMapper.ToEntity(request);
             entity.MaHD = Guid.NewGuid();

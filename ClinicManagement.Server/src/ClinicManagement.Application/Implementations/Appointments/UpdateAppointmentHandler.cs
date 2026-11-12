@@ -15,9 +15,16 @@ namespace ClinicManagement.Application.Implementations.Appointments
 
         private readonly IAppointmentRepository _lichHenRepo;
         private readonly ICurrentUserService _currentUser;
+        private readonly IDoctorRepository _doctorRepo;
+        private readonly IPatientRepository _patientRepo;
+        private readonly IPatientScopeService _patientScope;
 
-        public UpdateAppointmentHandler(IAppointmentRepository lichHenRepo, ICurrentUserService currentUser)
+        public UpdateAppointmentHandler(IAppointmentRepository lichHenRepo, ICurrentUserService currentUser,
+            IDoctorRepository doctorRepo, IPatientRepository patientRepo, IPatientScopeService patientScope)
         {
+            _doctorRepo = doctorRepo;
+            _patientRepo = patientRepo;
+            _patientScope = patientScope;
             _lichHenRepo = lichHenRepo;
             _currentUser = currentUser;
         }
@@ -33,6 +40,10 @@ namespace ClinicManagement.Application.Implementations.Appointments
             var lichHen = await _lichHenRepo.GetAsync(request.MaLH);
             if (lichHen == null || lichHen.IsDeleted)
                 return result.BuildError("Không tìm thấy lịch hẹn.");
+
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            if (pid != null && lichHen.MaBN != pid)
+                return result.BuildError("Bạn không có quyền chỉnh sửa lịch hẹn này.");
 
             var callerRole = _currentUser.GetRole();
             if (callerRole == "BenhNhan")
@@ -58,6 +69,14 @@ namespace ClinicManagement.Application.Implementations.Appointments
 
         private async Task<string?> ValidateNoOverlapAsync(LichHenRequest request, Guid? excludedId = null)
         {
+            if (request.MaBS != null
+                && !await _doctorRepo.FindBy(d => d.MaBS == request.MaBS && d.IsDeleted == false).AnyAsync())
+                return "Bác sĩ không tồn tại.";
+
+            if (request.MaBN != null
+                && !await _patientRepo.FindBy(p => p.MaBN == request.MaBN && p.IsDeleted == false).AnyAsync())
+                return "Bệnh nhân không tồn tại.";
+
             var rangeStart = request.ThoiGianKham - MinGapBetweenAppointments;
             var rangeEnd = request.ThoiGianKham + MinGapBetweenAppointments;
 

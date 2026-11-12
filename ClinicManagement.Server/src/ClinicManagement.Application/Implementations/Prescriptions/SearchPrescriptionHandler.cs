@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using LinqKit;
 using MayNghien.Infrastructures.Models.Requests;
 using MayNghien.Infrastructures.Models.Responses;
@@ -15,8 +16,11 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
     {
         private readonly IPrescriptionRepository _donThuocRepo;
 
-        public SearchPrescriptionHandler(IPrescriptionRepository donThuocRepo)
+        private readonly IPatientScopeService _patientScope;
+
+        public SearchPrescriptionHandler(IPrescriptionRepository donThuocRepo, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _donThuocRepo = donThuocRepo;
         }
 
@@ -25,6 +29,8 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
             var result = new AppResponse<SearchResponse<DonThuocResponse>>();
 
             var query = BuildFilterExpression(request.Filters!);
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            query = query.And(x => pid == null || x.MedicalExamination!.Appointment!.MaBN == pid);
             var numOfRecords = await _donThuocRepo.CountRecordsAsync(query);
             var entities = _donThuocRepo.FindBy(query)
                 .Include(x => x.PrescriptionDetails!)

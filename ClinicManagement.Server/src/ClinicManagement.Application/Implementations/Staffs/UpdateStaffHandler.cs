@@ -40,16 +40,16 @@ namespace ClinicManagement.Application.Implementations.Staffs
             if (staff == null || staff.IsDeleted)
                 return result.BuildError("Không tìm thấy nhân viên.");
 
-            if ((staff.Email != request.Email || staff.SoDienThoai != request.SoDienThoai)
-                && await _identityUserService.UserExistsAsync(request.Email, request.SoDienThoai!))
-                return result.BuildError("Email hoặc số điện thoại đã được sử dụng.");
-
             if (!Enum.TryParse<Role>(request.Role, out var roleEnum))
                 return result.BuildError($"Vai trò '{request.Role}' không hợp lệ.");
 
             var userId = await _identityUserService.GetUserIdByEmailAsync(staff.Email);
             if (userId == null)
                 return result.BuildError("Không tìm thấy tài khoản người dùng liên kết.");
+
+            if ((staff.Email != request.Email || staff.SoDienThoai != request.SoDienThoai)
+                && await _identityUserService.UserExistsAsync(request.Email, request.SoDienThoai!, userId))
+                return result.BuildError("Email hoặc số điện thoại đã được sử dụng.");
 
             var updateResult = await _identityUserService.UpdateUserAsync(
                 userId, request.Email, request.SoDienThoai, request.HoTen, roleEnum,

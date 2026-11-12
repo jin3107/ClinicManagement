@@ -8,11 +8,11 @@ namespace MayNghien.Infrastructures.Models.Requests
 
         public SortByInfo? SortBy { get; set; }
         [Required]
-        [Range(0, int.MaxValue)]
+        [Range(1, int.MaxValue)]
         public int? PageIndex { get; set; }
 
         [Required]
-        [Range(1, int.MaxValue)]
+        [Range(1, 500)]
         public int? PageSize { get; set; }
     }
 }

@@ -66,7 +66,11 @@ namespace ClinicManagement.API.Controllers
         {
             var result = await _loginHandler.HandleAsync(request);
             if (result.IsSuccess)
+            {
                 SetRefreshTokenCookie(result.Data?.RefreshToken);
+                // The refresh token lives only in the HttpOnly cookie; never expose it to JS.
+                if (result.Data != null) result.Data.RefreshToken = string.Empty;
+            }
             return Ok(result);
         }
 
@@ -76,7 +80,11 @@ namespace ClinicManagement.API.Controllers
         {
             var result = await _registerHandler.HandleAsync(request);
             if (result.IsSuccess)
+            {
                 SetRefreshTokenCookie(result.Data?.RefreshToken);
+                // The refresh token lives only in the HttpOnly cookie; never expose it to JS.
+                if (result.Data != null) result.Data.RefreshToken = string.Empty;
+            }
             return Ok(result);
         }
 
@@ -98,7 +106,11 @@ namespace ClinicManagement.API.Controllers
 
             var result = await _refreshTokenHandler.HandleAsync(refreshToken);
             if (result.IsSuccess)
+            {
                 SetRefreshTokenCookie(result.Data?.RefreshToken);
+                // The refresh token lives only in the HttpOnly cookie; never expose it to JS.
+                if (result.Data != null) result.Data.RefreshToken = string.Empty;
+            }
             return Ok(result);
         }
 
@@ -135,7 +147,7 @@ namespace ClinicManagement.API.Controllers
         }
 
         [HttpPost("logout")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> Logout()
         {
             var refreshToken = Request.Cookies["RefreshToken"] ?? string.Empty;

@@ -31,9 +31,16 @@ namespace ClinicManagement.Infrastructure.Implementations.Authentication
             var result = new AppResponse<SendOtpResponse>();
 
             var email = request.Email.Trim().ToLowerInvariant();
+            const string sentMessage = "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi.";
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
-                return result.BuildError("Email không tồn tại trong hệ thống.");
+                // Same response as success so emails cannot be enumerated.
+                return result.BuildResult(new SendOtpResponse { Email = email }, sentMessage);
+
+            // Resend cooldown: blocks OTP spam / email bombing and repeated fresh guess budgets.
+            var active = await _otpRepository.FindActiveAsync(email);
+            if (active?.CreatedOn != null && active.CreatedOn > DateTime.UtcNow.AddSeconds(-60))
+                return result.BuildError("Vui lòng đợi 60 giây trước khi yêu cầu mã OTP mới.");
 
             await _otpRepository.InvalidatePreviousAsync(email);
 
@@ -51,16 +58,10 @@ namespace ClinicManagement.Infrastructure.Implementations.Authentication
             await _emailService.SendEmailAsync(email, "Mã xác thực đặt lại mật khẩu - Quản Lý Phòng Khám",
                 $"Mã OTP của bạn là: {otp}\nMã có hiệu lực trong 5 phút.");
 
-            return result.BuildResult(new SendOtpResponse { Email = email },
-                "Mã OTP đã được gửi tới email của bạn.");
+            return result.BuildResult(new SendOtpResponse { Email = email }, sentMessage);
         }
 
         private static string GenerateOtp()
-        {
-            using var rng = RandomNumberGenerator.Create();
-            var bytes = new byte[4];
-            rng.GetBytes(bytes);
-            return (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1000000).ToString("D6");
-        }
+            => RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
     }
 }

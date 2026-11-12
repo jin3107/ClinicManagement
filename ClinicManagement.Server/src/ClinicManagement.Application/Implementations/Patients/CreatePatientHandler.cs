@@ -12,10 +12,12 @@ namespace ClinicManagement.Application.Implementations.Patients
     {
         private readonly IPatientRepository _benhNhanRepository;
         private readonly ICurrentUserService _currentUser;
+        private readonly IPatientScopeService _patientScope;
 
         public CreatePatientHandler(IPatientRepository benhNhanRepository,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _benhNhanRepository = benhNhanRepository;
             _currentUser = currentUser;
         }
@@ -29,6 +31,16 @@ namespace ClinicManagement.Application.Implementations.Patients
                 return result.BuildError("Unauthorized");
 
             var entity = PatientMapper.ToEntity(request);
+
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            if (pid != null)
+            {
+                // Patient self-service: one profile per account, linked to that account.
+                if (pid != Guid.Empty)
+                    return result.BuildError("Tài khoản này đã có hồ sơ bệnh nhân.");
+                entity.MaTK = _currentUser.GetUserId();
+            }
+
             entity.MaBN = Guid.NewGuid();
             entity.CreatedBy = callerEmail;
             entity.CreatedOn = DateTime.UtcNow;

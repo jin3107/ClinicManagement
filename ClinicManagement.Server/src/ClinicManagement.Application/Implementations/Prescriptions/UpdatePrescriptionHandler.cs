@@ -48,7 +48,6 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
                     ct.ModifiedBy = callerEmail;
                     ct.ModifiedOn = DateTime.UtcNow;
                 }
-                await _chiTietRepo.EditRangeAsync(oldChiTietList);
             }
 
             var chiTietList = request.ChiTietDonThuocs.Select(ct => new PrescriptionDetail
@@ -62,11 +61,13 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
                 CreatedOn = DateTime.UtcNow,
                 IsDeleted = false,
             }).ToList();
-            await _chiTietRepo.AddRangeAsync(chiTietList);
 
             donThuoc.ModifiedBy = callerEmail;
             donThuoc.ModifiedOn = DateTime.UtcNow;
-            await _donThuocRepo.EditAsync(donThuoc);
+
+            // Old details (soft-deleted), header changes and new details are all tracked by the same
+            // scoped DbContext, so this single SaveChanges persists them atomically.
+            await _chiTietRepo.AddRangeAsync(chiTietList);
 
             var updated = await _donThuocRepo
                 .FindBy(x => x.MaDT == donThuoc.MaDT)
