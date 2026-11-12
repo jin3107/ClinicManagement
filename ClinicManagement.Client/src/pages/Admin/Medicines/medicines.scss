@@ -1,0 +1,7 @@
+/* Shared admin styles live in ../admin.scss. Add page-only styles here. */
+.admin-medicines-page {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+}
