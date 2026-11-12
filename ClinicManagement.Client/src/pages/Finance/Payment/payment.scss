@@ -1,0 +1,641 @@
+$primary: #0b4f84;
+$primary-soft: #edf4fb;
+$text: #1f2937;
+$muted: #64748b;
+$border: #dbe6f1;
+$bg: #f6f7f9;
+$white: #ffffff;
+$success: #16a34a;
+$warning: #f59e0b;
+
+$shadow-sm: 0 6px 20px rgba(15, 23, 42, 0.06);
+$radius: 10px;
+$radius-sm: 8px;
+
+// ══════════════════════════════════════════════════════
+.payment-page {
+  background: $bg;
+  min-height: 100vh;
+  background: url("../../../assets/image/background3.jpg") no-repeat center;
+  background-size: cover, cover;
+  background-attachment: fixed;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  // ── Header ─────────────────────────────────────────
+  .payment-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    h2 {
+      margin: 0;
+      color: $primary;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: $muted;
+      font-size: 14px;
+    }
+  }
+
+  .stat-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: $white;
+    border: 1px solid $border;
+    border-radius: $radius;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    span {
+      color: $muted;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    strong {
+      color: $text;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+
+  // ── Main 2-column layout ───────────────────────────
+  // LEFT wider (bảng + info BN/PK), RIGHT fixed (chi phí + thanh toán)
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .right-col {
+    position: sticky;
+    top: 16px;
+  }
+
+  // ── Ant Card base ──────────────────────────────────
+  .ant-card {
+    border-radius: $radius !important;
+    border: 1px solid $border !important;
+    box-shadow: $shadow-sm !important;
+    .ant-card-head {
+      background: $white !important;
+      border-bottom: 1px solid $border !important;
+      min-height: 44px !important;
+      padding: 0 16px !important;
+    }
+    .ant-card-body {
+      padding: 0 !important;
+    }
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: $primary;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  // ── Table – giống ảnh lịch khám ───────────────────
+  .pay-table {
+    .ant-table-thead > tr > th {
+      background: $primary-soft !important;
+      color: $primary !important;
+      font-weight: 700 !important;
+      font-size: 12px !important;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: none !important;
+      padding: 11px 16px !important;
+      white-space: nowrap;
+      &::before {
+        background-color: transparent !important;
+      }
+    }
+    .ant-table-tbody > tr > td {
+      border-color: $border !important;
+      padding: 12px 16px !important;
+      vertical-align: middle;
+      font-size: 13px;
+      color: $text;
+    }
+    .ant-table-tbody > tr:hover > td {
+      background: #f1f5f9 !important;
+    }
+    .ant-table-tbody > tr.row-sel > td {
+      background: #eef6ff !important;
+    }
+    .ant-table-container {
+      border: none !important;
+    }
+  }
+
+  .patient-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .patient-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: $text;
+  }
+  .patient-sub {
+    font-size: 11px;
+    color: $muted;
+  }
+
+  .sel-btn {
+    background: $primary !important;
+    border-color: $primary !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+  }
+
+  .ant-pagination {
+    padding: 10px 16px !important;
+    margin: 0 !important;
+  }
+  .ant-pagination .ant-pagination-item-active {
+    background: $primary !important;
+    border-color: $primary !important;
+    a {
+      color: $white !important;
+    }
+  }
+
+  // ── 2-col info row (BN left, PK right) ────────────
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .info-card {
+    background: $white;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: $primary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $muted;
+    min-width: 110px;
+  }
+
+  .info-value {
+    font-size: 13px;
+    color: $text;
+    &.strong {
+      font-weight: 700;
+      color: $primary;
+    }
+  }
+
+  // ── Right panel card ───────────────────────────────
+  .pay-card {
+    .ant-card-body {
+      padding: 16px !important;
+    }
+  }
+
+  .empty-right {
+    .ant-card-body {
+      padding: 50px 20px !important;
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: $muted;
+    text-align: center;
+    p {
+      font-size: 13px;
+    }
+  }
+
+  .empty-icon {
+    font-size: 40px;
+    color: #93a4ba;
+    background: #f1f5f9;
+    padding: 16px;
+    border-radius: 50%;
+    border: 2px dashed #cbd5e1;
+  }
+
+  .invoice-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .invoice-status {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    span {
+      color: $muted;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    strong {
+      color: $text;
+      font-size: 13px;
+    }
+  }
+
+  // ── Service table (right) ──────────────────────────
+  .svc-table {
+    .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      color: $primary !important;
+      font-weight: 600 !important;
+      font-size: 12px !important;
+      padding: 9px 10px !important;
+      border-bottom: none !important;
+      &::before {
+        background-color: transparent !important;
+      }
+    }
+    .ant-table-tbody > tr > td {
+      border-color: $border !important;
+      padding: 8px 10px !important;
+      font-size: 12.5px;
+    }
+    .ant-table-tbody > tr:nth-child(even) > td {
+      background: #f8fafc;
+    }
+    .ant-table-tbody > tr:hover > td {
+      background: #f1f5f9 !important;
+    }
+    .ant-table-container {
+      border: none !important;
+    }
+  }
+
+  .svc-summary td {
+    background: #f8fafc !important;
+    border-top: 1px solid $border !important;
+  }
+
+  .price-cell {
+    font-variant-numeric: tabular-nums;
+    color: $text;
+  }
+  .total-sum {
+    color: $primary;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  // ── Total box ──────────────────────────────────────
+  .total-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 10px 14px;
+    margin-top: 10px;
+  }
+
+  .total-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $muted;
+  }
+  .total-amount {
+    font-size: 20px;
+    font-weight: 800;
+    color: $primary;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // ── Payment method ─────────────────────────────────
+  .method-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .method-btns {
+    display: flex;
+    gap: 8px;
+  }
+
+  .method-btn {
+    flex: 1;
+    padding: 10px 6px;
+    border-radius: $radius-sm;
+    border: 1.5px solid $border;
+    background: $white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: inherit;
+    &:hover {
+      border-color: $primary;
+      color: $primary;
+      background: #f8fafc;
+    }
+    &.active {
+      border-color: $primary;
+      background: $primary;
+      color: $white;
+      box-shadow: 0 3px 10px rgba(11, 79, 132, 0.2);
+    }
+  }
+
+  // ── QR chuyển khoản ────────────────────────────────
+  .qr-box {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: $radius-sm;
+    border: 1.5px dashed $border;
+    background: #f8fafc;
+    text-align: center;
+  }
+
+  .qr-image {
+    width: 220px;
+    max-width: 100%;
+    border-radius: $radius-sm;
+  }
+
+  .qr-hint {
+    margin: 10px 0 0;
+    font-size: 12.5px;
+    color: #475569;
+  }
+
+  // ── Action row ─────────────────────────────────────
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .action-row .ant-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px !important;
+    line-height: 1 !important;
+    padding: 0 16px !important;
+  }
+
+  .print-btn {
+    flex: 1;
+    border-radius: $radius-sm !important;
+    height: 40px !important;
+    border-color: $border !important;
+    color: $primary !important;
+    font-weight: 600 !important;
+    &:hover {
+      border-color: $primary !important;
+      background: #f8fafc !important;
+    }
+  }
+
+  .pay-btn {
+    flex: 2;
+    background: $primary !important;
+    border-color: $primary !important;
+    border-radius: $radius-sm !important;
+    height: 40px !important;
+    width: 100px !important;
+    font-weight: 700 !important;
+    &:disabled {
+      background: #b0b8c4 !important;
+      border-color: #b0b8c4 !important;
+    }
+  }
+
+  .ant-tag {
+    border-radius: 4px;
+    font-size: 11px;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════
+.print-modal .ant-modal-content {
+  border-radius: 12px !important;
+}
+
+.invoice-preview {
+  padding: 4px 0;
+  font-size: 13px;
+  color: $text;
+}
+.inv-clinic {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: $primary;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.inv-title {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: $primary;
+  margin: 5px 0 12px;
+  text-transform: uppercase;
+}
+
+.inv-meta-box {
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.75;
+  background: #fafcff;
+}
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  th,
+  td {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    border-bottom: 1px solid $border;
+  }
+  th {
+    background: #f0f4f9;
+    font-weight: 700;
+    color: $primary;
+  }
+  .inv-price {
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.inv-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 16px;
+  color: $primary;
+  padding: 2px 4px;
+}
+.inv-total-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.toa-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: $primary;
+  margin-bottom: 8px;
+}
+.toa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.toa-item {
+  background: #f8fafc;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.toa-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: $primary;
+}
+.toa-lieu {
+  font-size: 12px;
+  color: #374151;
+}
+.toa-ccd {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b45309;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  .anticon {
+    color: #f59e0b;
+  }
+}
+
+.inv-footer {
+  text-align: center;
+  color: $muted;
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+@media (max-width: 1100px) {
+  .payment-page {
+    .main-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .right-col {
+      position: static;
+    }
+
+    .stat-group {
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .payment-page {
+    padding: 12px;
+
+    .stat-group {
+      grid-template-columns: 1fr;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
