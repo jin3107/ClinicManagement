@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using MayNghien.Infrastructures.Models.Responses;
 using Microsoft.EntityFrameworkCore;
 using ClinicManagement.Application.Interfaces.Appointments;
@@ -11,8 +12,11 @@ namespace ClinicManagement.Application.Implementations.Appointments
     {
         private readonly IAppointmentRepository _lichHenRepo;
 
-        public GetAppointmentByIdHandler(IAppointmentRepository lichHenRepo)
+        private readonly IPatientScopeService _patientScope;
+
+        public GetAppointmentByIdHandler(IAppointmentRepository lichHenRepo, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _lichHenRepo = lichHenRepo;
         }
 
@@ -20,7 +24,9 @@ namespace ClinicManagement.Application.Implementations.Appointments
         {
             var result = new AppResponse<LichHenResponse>();
 
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
             var lichHen = await _lichHenRepo.FindBy(v => v.MaLH == id && v.IsDeleted == false)
+                .Where(v => pid == null || v.MaBN == pid)
                 .FirstOrDefaultAsync();
             if (lichHen == null)
                 return result.BuildError("Thông tin lịch hẹn không tồn tại hoặc đã bị xóa.");

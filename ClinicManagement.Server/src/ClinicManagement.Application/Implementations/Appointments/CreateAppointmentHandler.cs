@@ -15,9 +15,16 @@ namespace ClinicManagement.Application.Implementations.Appointments
 
         private readonly IAppointmentRepository _lichHenRepo;
         private readonly ICurrentUserService _currentUser;
+        private readonly IDoctorRepository _doctorRepo;
+        private readonly IPatientRepository _patientRepo;
+        private readonly IPatientScopeService _patientScope;
 
-        public CreateAppointmentHandler(IAppointmentRepository lichHenRepo, ICurrentUserService currentUser)
+        public CreateAppointmentHandler(IAppointmentRepository lichHenRepo, ICurrentUserService currentUser,
+            IDoctorRepository doctorRepo, IPatientRepository patientRepo, IPatientScopeService patientScope)
         {
+            _doctorRepo = doctorRepo;
+            _patientRepo = patientRepo;
+            _patientScope = patientScope;
             _lichHenRepo = lichHenRepo;
             _currentUser = currentUser;
         }
@@ -29,6 +36,18 @@ namespace ClinicManagement.Application.Implementations.Appointments
             var callerEmail = _currentUser.GetEmail();
             if (callerEmail == null)
                 return result.BuildError("Unauthorized");
+
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            if (pid != null)
+            {
+                // A patient can only book for themselves.
+                if (pid == Guid.Empty)
+                    return result.BuildError("Bạn chưa có hồ sơ bệnh nhân. Vui lòng tạo hồ sơ trước khi đặt lịch.");
+                request.MaBN = pid;
+            }
+
+            if (request.ThoiGianKham < DateTime.UtcNow)
+                return result.BuildError("Thời gian khám phải ở tương lai.");
 
             var validationError = await ValidateNoOverlapAsync(request);
             if (validationError != null)
@@ -50,6 +69,14 @@ namespace ClinicManagement.Application.Implementations.Appointments
 
         private async Task<string?> ValidateNoOverlapAsync(LichHenRequest request, Guid? excludedId = null)
         {
+            if (request.MaBS != null
+                && !await _doctorRepo.FindBy(d => d.MaBS == request.MaBS && d.IsDeleted == false).AnyAsync())
+                return "Bác sĩ không tồn tại.";
+
+            if (request.MaBN != null
+                && !await _patientRepo.FindBy(p => p.MaBN == request.MaBN && p.IsDeleted == false).AnyAsync())
+                return "Bệnh nhân không tồn tại.";
+
             var rangeStart = request.ThoiGianKham - MinGapBetweenAppointments;
             var rangeEnd = request.ThoiGianKham + MinGapBetweenAppointments;
 

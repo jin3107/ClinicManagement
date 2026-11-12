@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using LinqKit;
 using MayNghien.Infrastructures.Models.Requests;
 using MayNghien.Infrastructures.Models.Responses;
@@ -15,8 +16,11 @@ namespace ClinicManagement.Application.Implementations.Invoices
     {
         private readonly IInvoiceRepository _hoaDonRepo;
 
-        public SearchInvoiceHandler(IInvoiceRepository hoaDonRepo)
+        private readonly IPatientScopeService _patientScope;
+
+        public SearchInvoiceHandler(IInvoiceRepository hoaDonRepo, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _hoaDonRepo = hoaDonRepo;
         }
 
@@ -25,6 +29,8 @@ namespace ClinicManagement.Application.Implementations.Invoices
             var result = new AppResponse<SearchResponse<HoaDonResponse>>();
 
             var query = BuildFilterExpression(request.Filters!);
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            query = query.And(x => pid == null || x.MedicalExamination!.Appointment!.MaBN == pid);
             var numOfRecords = await _hoaDonRepo.CountRecordsAsync(query);
             var entities = _hoaDonRepo.FindBy(query)
                 .Include(x => x.MedicalExamination!).ThenInclude(p => p.Appointment!).ThenInclude(l => l.Patient)

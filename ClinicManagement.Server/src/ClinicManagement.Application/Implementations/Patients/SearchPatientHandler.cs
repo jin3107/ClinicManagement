@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using LinqKit;
 using MayNghien.Infrastructures.Models.Requests;
 using MayNghien.Infrastructures.Models.Responses;
@@ -15,8 +16,11 @@ namespace ClinicManagement.Application.Implementations.Patients
     {
         private readonly IPatientRepository _benhNhanRepository;
 
-        public SearchPatientHandler(IPatientRepository benhNhanRepository)
+        private readonly IPatientScopeService _patientScope;
+
+        public SearchPatientHandler(IPatientRepository benhNhanRepository, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _benhNhanRepository = benhNhanRepository;
         }
 
@@ -25,6 +29,8 @@ namespace ClinicManagement.Application.Implementations.Patients
             var result = new AppResponse<SearchResponse<BenhNhanResponse>>();
 
             var query = BuildFilterExpression(request.Filters!);
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
+            query = query.And(x => pid == null || x.MaBN == pid);
             var numOfRecords = await _benhNhanRepository.CountRecordsAsync(query);
             var entities = _benhNhanRepository.FindBy(query).AsQueryable();
 

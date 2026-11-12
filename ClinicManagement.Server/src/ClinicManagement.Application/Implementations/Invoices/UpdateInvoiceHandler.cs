@@ -28,6 +28,9 @@ namespace ClinicManagement.Application.Implementations.Invoices
             if (callerEmail == null)
                 return result.BuildError("Unauthorized");
 
+            if (request.TongTien < 0)
+                return result.BuildError("Tổng tiền không hợp lệ.");
+
             var entity = await _hoaDonRepo
                 .FindBy(x => x.MaHD == request.MaHD && x.IsDeleted == false)
                 .Include(x => x.MedicalExamination!).ThenInclude(p => p.Appointment!).ThenInclude(l => l.Patient)

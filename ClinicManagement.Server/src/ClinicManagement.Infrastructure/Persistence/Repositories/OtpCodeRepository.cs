@@ -71,8 +71,12 @@ namespace ClinicManagement.Infrastructure.Persistence.Repositories
 
         public async Task ClearExpiredAsync()
         {
+            // Keep recently verified OTPs: ResetPassword relies on them for up to 10 minutes.
+            var now = DateTime.UtcNow;
+            var verifiedWindow = now.AddMinutes(-10);
             var expired = await _context.OtpCodes
-                .Where(o => o.ExpiresAt <= DateTime.UtcNow || o.IsUsed)
+                .Where(o => o.ExpiresAt <= now
+                    || (o.IsUsed && (o.ModifiedOn == null || o.ModifiedOn < verifiedWindow)))
                 .ToListAsync();
             _context.OtpCodes.RemoveRange(expired);
             await _context.SaveChangesAsync();

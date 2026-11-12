@@ -37,7 +37,6 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
             donThuoc.CreatedBy = callerEmail;
             donThuoc.CreatedOn = DateTime.UtcNow;
             donThuoc.IsDeleted = false;
-            await _donThuocRepo.AddAsync(donThuoc);
 
             var chiTietList = request.ChiTietDonThuocs.Select(ct => new PrescriptionDetail
             {
@@ -50,7 +49,10 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
                 CreatedOn = DateTime.UtcNow,
                 IsDeleted = false,
             }).ToList();
-            await _chiTietRepo.AddRangeAsync(chiTietList);
+
+            // Attach details to the header so EF inserts the whole graph in one SaveChanges (one transaction).
+            donThuoc.PrescriptionDetails = chiTietList;
+            await _donThuocRepo.AddAsync(donThuoc);
 
             var created = await _donThuocRepo
                 .FindBy(x => x.MaDT == donThuoc.MaDT)

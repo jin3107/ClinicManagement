@@ -51,17 +51,27 @@ namespace ClinicManagement.Infrastructure.Implementations.Authentication
                 user = await SeedAdminAsync(seedEmail, seedPassword);
             }
 
+            // Same message for unknown user / wrong password so accounts cannot be enumerated.
+            const string invalidCredentials = "Invalid credentials. Please check your username and password.";
             if (user == null)
-                return result.BuildError("User not found. Please check your username or email.");
+                return result.BuildError(invalidCredentials);
+
+            if (await _userManager.IsLockedOutAsync(user))
+                return result.BuildError("Account is temporarily locked due to too many failed attempts. Please try again later.");
 
             if (!await _userManager.CheckPasswordAsync(user, request.Password))
-                return result.BuildError("Invalid credentials. Please check your password.");
+            {
+                await _userManager.AccessFailedAsync(user);
+                return result.BuildError(invalidCredentials);
+            }
+
+            await _userManager.ResetAccessFailedCountAsync(user);
 
             var roles = await _userManager.GetRolesAsync(user);
             if (!roles.Any())
                 return result.BuildError("User has no role assigned.");
 
-            var claims = BuildClaims(user.Email!, user.PhoneNumber, roles);
+            var claims = BuildClaims(user.Id, user.Email!, user.PhoneNumber, roles);
             var (accessToken, refreshToken) = await GenerateTokensAsync(user, claims);
 
             return result.BuildResult(new LoginResponse
@@ -105,10 +115,11 @@ namespace ClinicManagement.Infrastructure.Implementations.Authentication
             return admin;
         }
 
-        internal static List<Claim> BuildClaims(string email, string? phoneNumber, IList<string> roles)
+        internal static List<Claim> BuildClaims(string userId, string email, string? phoneNumber, IList<string> roles)
         {
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Name, email),
             };

@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using MayNghien.Infrastructures.Models.Responses;
 using Microsoft.EntityFrameworkCore;
 using ClinicManagement.Application.Interfaces.Patients;
@@ -11,8 +12,11 @@ namespace ClinicManagement.Application.Implementations.Patients
     {
         private readonly IPatientRepository _benhNhanRepository;
 
-        public GetPatientByIdHandler(IPatientRepository benhNhanRepository)
+        private readonly IPatientScopeService _patientScope;
+
+        public GetPatientByIdHandler(IPatientRepository benhNhanRepository, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _benhNhanRepository = benhNhanRepository;
         }
 
@@ -20,7 +24,9 @@ namespace ClinicManagement.Application.Implementations.Patients
         {
             var result = new AppResponse<BenhNhanResponse>();
 
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
             var entity = await _benhNhanRepository.FindBy(x => x.MaBN == id && x.IsDeleted == false)
+                .Where(x => pid == null || x.MaBN == pid)
                 .FirstOrDefaultAsync();
             if (entity == null)
                 return result.BuildError("Thông tin bệnh nhân không tồn tại.");

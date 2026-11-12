@@ -1,3 +1,4 @@
+using ClinicManagement.Application.Interfaces.Identity;
 using MayNghien.Infrastructures.Models.Responses;
 using Microsoft.EntityFrameworkCore;
 using ClinicManagement.Application.Interfaces.Prescriptions;
@@ -11,8 +12,11 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
     {
         private readonly IPrescriptionRepository _donThuocRepo;
 
-        public GetPrescriptionByIdHandler(IPrescriptionRepository donThuocRepo)
+        private readonly IPatientScopeService _patientScope;
+
+        public GetPrescriptionByIdHandler(IPrescriptionRepository donThuocRepo, IPatientScopeService patientScope)
         {
+            _patientScope = patientScope;
             _donThuocRepo = donThuocRepo;
         }
 
@@ -20,8 +24,10 @@ namespace ClinicManagement.Application.Implementations.Prescriptions
         {
             var result = new AppResponse<DonThuocResponse>();
 
+            var pid = await _patientScope.GetRestrictedPatientIdAsync();
             var donThuoc = await _donThuocRepo
                 .FindBy(x => x.MaDT == id && x.IsDeleted == false)
+                .Where(x => pid == null || x.MedicalExamination!.Appointment!.MaBN == pid)
                 .Include(x => x.PrescriptionDetails!)
                     .ThenInclude(ct => ct.Medicine)
                 .FirstOrDefaultAsync();

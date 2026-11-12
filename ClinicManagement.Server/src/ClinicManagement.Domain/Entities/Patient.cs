@@ -16,6 +16,9 @@ namespace ClinicManagement.Domain.Entities
         public string? SoBHYT { get; set; }
         public string? TienSuDiUng { get; set; }
 
+        /// <summary>Identity user id of the patient account that owns this record (null for walk-in patients).</summary>
+        public string? MaTK { get; set; }
+
         public ICollection<Appointment> Appointments { get; set; }
     }
 }
